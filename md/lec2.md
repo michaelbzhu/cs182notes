@@ -28,21 +28,19 @@ Learn $f_{\theta}(x) = y$
 
 ## Considerations:
 
-**How do we represent $f_{\theta}(x)$?**
+1. **How do we represent $f_{\theta}(x)$?**
 
-This course goes over neural network representations of $f_{\theta}(x)$
+> This course goes over **neural network** representations of $f_{\theta}(x)$
 
-**How do we measure the performance of $f_{\theta}(x)$?**
+2. **How do we measure the performance of $f_{\theta}(x)$?**
 
-We compute the _loss_ which is usually a function of the difference between $f_{\theta}(x_{i})$ and $y_{i}$
+> We compute the **loss** which is usually a function of the difference between $f_{\theta}(x_{i})$ and $y_{i}$
 
-**How do we find the best $\theta$?**
+3. **How do we find the best $\theta$?**
 
-We use an optimzation algorithm. Examples include random search, local search, gradient descent, etc.
+> We use an **optimzation** algorithm. Examples include random search, local search, gradient descent, etc.
 
 ## Examples of supervised learning problems
-
-Note: majority of machine learning in industry is supervised learning
 
 | **Predict**         | **Based on...**     |
 | ------------------- | ------------------- |
@@ -70,7 +68,7 @@ Conditions:
 - probabilties must be positive $\rightarrow \forall i \ p_{\theta} (y_{i}|x) > 0$
 - probabilites must sum to one $\rightarrow \sum_{i} p_{\theta}(y_{i}|x) = 1$
 
-### Softmax function
+## Softmax function
 
 Any function that takes some input vector and outputs a probability vector that is **positive** and **sums to one**.
 
@@ -87,6 +85,72 @@ Use $exp(x)$ and normalization to define our softmax
 $$p(y_{i}|x) = softmax_{i}(f_{\theta}(x)) = \frac{exp(f_{\theta, i}(x))}{\sum_{j} exp(f_{\theta, j}(x))}$$
 
 There are many ways to get positive numbers that some to one, but the softmax is very commmonly used
+
+## Dataset generation
+
+$$D = \{(x_{1}, y_{1}), (x_{2}, y_{2}), ..., (x_{n}, y_{n})\}$$
+
+**We want our dataset to be as representative of the real world as possible**
+
+The set of inputs $\{x_{i}\}$ are sampled from a probability distribution $p(x)$ based on the **real world**
+
+The set of labels $\{y_{i}\}$ are generated from a conditional probability distribution $p(y|x)$ based on the **labelling process** (i.e. human observation, measuring tools, experimentation, etc)
+
+By chain rule, the probability of each sample is:
+$$p(x,y) = p(x) * p(y|x)$$
+
+If we assume that each sample is **independent** and **identically distributed** (i.i.d.), then:
+$$p(D) = \prod_{i} p(x_{i}, y_{i})$$
+$$p(D) = \prod_{i} p(x_{i})p(y_{i}|x_{i})$$
+
+In machine learning, we are learning $p_{\theta}(y|x)$, which is a **model** of the true $p(y|x)$
+
+A good model should make the dataset look probable, so we want to maximize $p(D)$ as defined with $p_{\theta}(y|x)$
+$$\arg\max_{\theta} p(D) = \prod_{i} p(x_{i})p_{\theta}(y_{i}|x_{i})$$
+
+## Loss Function
+
+**Issue**: the above definition of $p(D)$ is numerically challenging since it will almost always be very close to zero (multiplying many numbers <= 1)
+
+Instead we can take the logarithm $\log p(D)$ to use a **summation** rather than product.
+$$\log p(D) = \sum_{i} \log p(x_{i}) + \log p_{\theta}(y_{i}|x_{i})$$
+
+We can **ignore** $\log p(x_{i})$ because it doesn't depend on $\theta$
+
+Optimization **objective**:
+$$\theta^{*} \leftarrow \arg\max_{\theta} \sum_{i} \log p_{\theta}(y_{i}|x_{i}) \ \ \ \ \text{maxiumum likelihood estimation (MLE)}$$
+$$\theta^{*} \leftarrow \arg\min_{\theta} -\sum_{i} \log p_{\theta}(y_{i}|x_{i}) \ \ \ \ \text{negative log likelihood (NLL)}$$
+
+## Examples of loss functions
+
+Intuitively, loss functions tell us how **bad** $\theta$ is
+
+**Zero-one loss**: $\sum_{i} \delta(f_{\theta}(x_{i}) != y_{i})$
+
+**Mean squared error**: $\sum_{i}^{n} \frac{1}{n} ||f_{\theta}(x_{i}) - y_{i}||^{2}$
+
+**Negative log-likelihood**: $-\sum*{i} \log p*{\theta}(y*{i}|x*{i}) \ \ $ (aka **cross-entropy**)
+
+**And many more...**
+
+Aside: **cross-entropy** measures the similarity between two distributions $p$ and $p_{\theta}$
+$$H(p, p_{\theta}) = - \sum_{y} p(y|x_{i}) \log p_{\theta}(y|x_{i}))$$
+
+## Optimization: Gradient Descent
+
+We have our loss function $L(\theta)$ as derived from above
+
+**General minimization algorithm:**
+
+1. Find a direction $v$ where $L(\theta)$ decreases
+2. Update $\theta \leftarrow \theta + \alpha v$
+
+**Gradient descent algorithm:**
+
+Gradient: $\nabla_{\theta} L(\theta) = \begin{pmatrix}dL(\theta) / d\theta_{1} \\ dL(\theta) / d\theta_{2} \\ ... \\ dL(\theta) / d\theta_{n} \end{pmatrix}$
+
+1. Compute $\nabla_{\theta} L(\theta)$
+2. Update $\theta \leftarrow \theta - \alpha \nabla_{\theta} L(\theta)$
 
 # Unsupervised Learning
 
@@ -158,3 +222,4 @@ Given:
 - action: giving a recommendation
 - state/observations: user history
 - reward: if user accepts the recommendation
+  $$
