@@ -86,14 +86,86 @@ $$||\bar{f}(x) - f(y)||^{2} \rightarrow \text{Bias}^{2}$$
 
 How much does the algorithm's predicted function change with the dataset (difference from the average function)?
 
-If variance is too high $\rightarrow$ overfitting
+If **variance** is too high $\rightarrow$ **overfitting**
 
 ## Bias$^{2}$:
 
 How far off is the algorithm's average function to the true function?
 
-If bias is too high $\rightarrow$ underfitting
+If **bias** is too high $\rightarrow$ **underfitting**
 
 ## Key Question: how to regulate the tradeoff between variance and bias?
 
-- Usually when you decrease one the other increases
+Usually when you decrease one the other increases
+
+# Regularization
+
+**Bayesian interpretation**: a prior belief about our parameters
+
+When we have **high variance**, it's because the data **doesn't give enough information** to pick one of the many possible functions that are **equally good** based on empirical risk
+
+We can provide **more information** to our model by adding regularization to the loss function.
+
+**Question: Given dataset D, what is the most likely $\theta$?**
+
+$$p(\theta|D) = \frac{p(\theta, D)}{p(D)} \propto p(\theta, D) = p(D|\theta)p(\theta)$$
+$$\text{Remember: } p(D|\theta) = \prod_{i} p(x_{i}) p_{\theta}(y_{i}|x_{i})$$
+
+**So what is $p(\theta)$?** It's the probability of $\theta$ before we've seen the dataset D (aka the _prior_)
+
+$$\text{Old loss func: } L(\theta) = -\sum_{i} \log p_{\theta}(y_{i}|x_{i})$$
+$$\text{New loss func: } L(\theta) = -\sum_{i} \log p_{\theta}(y_{i}|x_{i}) + \log p(\theta)$$
+
+We add regularization to the loss function in the form of the _prior_ $\log p(\theta)$
+
+**How do we pick $p(\theta)$?** To keep things simple, we can represent it as a **normal distribution** with a **mean of zero**.
+$$p(\theta) = N(0,\sigma^{2})$$
+$$\text{If we set } \log p(\theta) = \lambda ||\theta||^{2}, \text{ we'll find that }\lambda = 1/2\sigma^{2}$$
+
+So $\lambda$ is **one divided by variance times half**. You can derive this from the formula of $\log p(\theta)$ when $p(\theta) = N(0,\sigma^{2})$
+
+In practice, $\lambda$ is a **hyperparameter** that we can pick to set the **variance of the normal distribution** of $p(\theta)$ based on our **prior knowledge/bias** that we want to impose on the loss function
+
+This is also known as "**L2 regularization**" and "**weight decay**", because it generally forces $\theta$ to take on smaller values which makes the learned function **smoother**
+
+$$L(\theta) = -\sum_{i} \log p_{\theta}(y_{i}|x_{i}) + \lambda ||\theta||^{2}$$
+
+## Other types of regularizers
+
+- $\lambda |\theta|$ taking the **absolute value** of $\theta$ instead of its square
+
+* also known as "**L1 regularization**"
+* creates a preference for **weight sparsity**, meaning that it will try to zero out the less useful dimensions
+
+**Dropout**: a special regularizer for neural networks where you randomly remove nodes during training
+
+**Gradient penalty**: a special regularizer for GANs
+
+And many more ...
+
+# Machine Learning Workflow
+
+$$\text{Define } L(\theta, D_{train}) \text{ as loss on training set}$$
+$$\text{Define } L(\theta, D_{val}) \text{ as loss on validation set}$$
+
+Note that $L(\theta, D_{train})$ only gives us information on **bias (underfitting)** and not **variance (overfitting)**, which is why we need $L(\theta, D_{val})$ to observe **variance**
+
+1. Split dataset into training, validation, and test sets
+
+   - **training set** $\rightarrow$ used to select $\theta$ and optimizer hyperparameters (i.e. learning rate $\alpha$)
+   - **validation set** $\rightarrow$ used to select model class (i.e. neural net architecture) and regularizer hyperparameters (i.e. $\lambda$)
+   - **test set** $\rightarrow$ used for final evaluation
+
+2. Train $\theta$ with $L(\theta, D_{train})$
+
+   - if $L(\theta, D_{train})$ is low $\rightarrow$ **underfitting** $\rightarrow$ decrease regularization, improve optimizer, etc
+
+3. Observe $L(\theta, D_{val})$
+
+   - if $L(\theta, D_{val}) >> L(\theta, D_{train})$ $\rightarrow$ **overfitting** $\rightarrow$ increase regularization, tweak model class, etc.
+
+4. Repeat steps 2 and 3 until you reach an acceptable loss or error (Reminder: error = variance + bias$^{2}$)
+
+5. Report **final performance** based on **test set**
+
+   - Think about why we can't use training set or validation set to evaluate final performance (they're **unbiased estimators** now since we've used them for training and hyperparameter optimization!)
